@@ -57,10 +57,11 @@ class AclManager extends AbstractAclManager
      * @param  UserInterface|TokenInterface|RoleInterface $securityIdentity
      * @param  string                                     $type
      * @param  string                                     $field
-     * @param  boolean                                    $replace_existing
+     * @param  boolean                                    $replaceExisting
+     *
      * @return AbstractAclManager
      */
-    protected function addPermission($domainObject, $field, $mask, $securityIdentity = null, $type = 'object', $replace_existing = false)
+    protected function addPermission($domainObject, $field, $mask, $securityIdentity = null, $type = 'object', $replaceExisting = false)
     {
         if (is_null($securityIdentity)) {
             $securityIdentity = $this->getUser();
@@ -73,7 +74,7 @@ class AclManager extends AbstractAclManager
         $oid = $objectIdentityRetriever->getObjectIdentity($domainObject);
 
         $acl = $this->doLoadAcl($oid);
-        $this->doApplyPermission($acl, $context, $replace_existing);
+        $this->doApplyPermission($acl, $context, $replaceExisting);
 
         $this->getAclProvider()->updateAcl($acl);
 
@@ -304,8 +305,10 @@ class AclManager extends AbstractAclManager
             return;
         }
 
-        $user = $token->getUser();
+        if(false === $token->isAuthenticated()){
+            return AuthenticatedVoter::IS_AUTHENTICATED_ANONYMOUSLY;
+        }
 
-        return (is_object($user)) ? $user : AuthenticatedVoter::IS_AUTHENTICATED_ANONYMOUSLY;
+        return $token->getUser();
     }
 }

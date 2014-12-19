@@ -153,7 +153,7 @@ interface AclManagerInterface
     /**
      * Delete entry related of item managed via ACL system
      *
-     * @param string|\DomainObject|DomainObjectInterface $managedItem
+     * @param string|DomainObjectInterface $managedItem
      *
      * @return self
      */
