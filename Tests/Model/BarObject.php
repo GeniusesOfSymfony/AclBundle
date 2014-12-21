@@ -71,5 +71,4 @@ class BarObject
     {
         return $this->id;
     }
-
 }

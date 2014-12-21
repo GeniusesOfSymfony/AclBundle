@@ -7,7 +7,7 @@ use Problematic\AclManagerBundle\Tests\Model\FooObject;
 use Problematic\AclManagerBundle\Tests\Security\AbstractSecurityTest;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 
-class AclManager extends AbstractSecurityTest
+class AclManagerTest extends AbstractSecurityTest
 {
     protected $fooClass;
 
@@ -39,13 +39,11 @@ class AclManager extends AbstractSecurityTest
 
         $this->aclManager
             ->addObjectPermission($b, 'OWNER', $user1Sid)
-            ->addObjectPermission($a, 'VIEW', $user1Sid)
-        ;
+            ->addObjectPermission($a, 'VIEW', $user1Sid);
 
         $this->aclManager
             ->addObjectPermission($b, 'VIEW', $user2Sid)
-            ->addObjectPermission($a, 'OWNER', $user2Sid)
-        ;
+            ->addObjectPermission($a, 'OWNER', $user2Sid);
 
         $this->authenticateUser('user1');
         $this->assertTrue($this->aclManager->isGranted('OWNER', $b));
@@ -74,11 +72,10 @@ class AclManager extends AbstractSecurityTest
         $this->aclManager
             ->addClassFieldPermission($a, 'securedField', 'MASTER', 'ROLE_ADMIN')
             ->addClassFieldPermission($c, 'securedField', 'VIEW', $this->generateSidForUser('user1'))
-            ->addClassFieldPermission($this->fooClass, ['securedField', 'bar'], 'VIEW', $this->generateSidForUser('user2'))
-        ;
+            ->addClassFieldPermission($this->fooClass, ['securedField', 'bar'], 'VIEW', $this->generateSidForUser('user2'));
 
         $this->authenticateUser('admin', ['ROLE_ADMIN']);
-        $this->assertTrue($this->aclManager->isFieldGranted('MASTER', $a, 'securedField', 'class' ));
+        $this->assertTrue($this->aclManager->isFieldGranted('MASTER', $a, 'securedField', 'class'));
         $this->assertTrue($this->aclManager->isFieldGranted('MASTER', $b, 'securedField', 'class'));
         $this->assertTrue($this->aclManager->isFieldGranted('MASTER', $c, 'securedField', 'class'));
         $this->assertFalse($this->aclManager->isFieldGranted('MASTER', $c, 'foo', 'class'));
@@ -107,8 +104,7 @@ class AclManager extends AbstractSecurityTest
 
         $this->aclManager
             ->addClassPermission($a, 'EDIT', $user3Sid)
-            ->addClassPermission($this->barClass, 'VIEW', $user3Sid)
-        ;
+            ->addClassPermission($this->barClass, 'VIEW', $user3Sid);
 
         $this->authenticateUser('user3');
         $this->assertTrue($this->aclManager->isGranted('EDIT', $a, 'class'));
@@ -141,8 +137,8 @@ class AclManager extends AbstractSecurityTest
 
     public function testRevokePermission()
     {
-        $a = new FooObject('revoke_permission_object_a'.uniqid());
-        $b = new FooObject('revoke_permission_object_b'.uniqid());
+        $a = new FooObject('revoke_permission_object_a' . uniqid());
+        $b = new FooObject('revoke_permission_object_b' . uniqid());
 
         $user3Sid = $this->generateSidForUser('user3');
         $user4Sid = $this->generateSidForUser('user4');
@@ -151,8 +147,7 @@ class AclManager extends AbstractSecurityTest
             ->addObjectPermission($a, 'OWNER', $user3Sid)
             ->addObjectPermission($b, 'VIEW', $user3Sid)
             ->addObjectPermission($a, 'VIEW', $user4Sid)
-            ->addObjectPermission($b, 'OWNER', $user4Sid)
-        ;
+            ->addObjectPermission($b, 'OWNER', $user4Sid);
 
         //Revoke permission for user4
         $this->aclManager->revokePermission($a, 'EDIT', $user4Sid);
@@ -169,7 +164,6 @@ class AclManager extends AbstractSecurityTest
 
         //Revoke permission for all users
         $this->aclManager->revokePermission($a, 'VIEW');
-
     }
 
     public function testRevokeFieldPermission()
@@ -186,8 +180,7 @@ class AclManager extends AbstractSecurityTest
             ->addObjectFieldPermission($b, 'securedField', 'VIEW', $user5Sid)
             ->addObjectFieldPermission($a, 'securedField', 'VIEW', $user6Sid)
             ->addObjectFieldPermission($b, 'securedField', 'OWNER', $user6Sid)
-            ->addObjectFieldPermission($b, 'foo', 'VIEW', $user6Sid)
-        ;
+            ->addObjectFieldPermission($b, 'foo', 'VIEW', $user6Sid);
 
         $this->authenticateUser('user5');
         $this->assertTrue($this->aclManager->isFieldGranted('OWNER', $a, 'securedField'));
@@ -233,8 +226,7 @@ class AclManager extends AbstractSecurityTest
             ->addObjectPermission($a, 'OWNER', $user7Sid)
             ->addObjectPermission($a, 'VIEW', $user8Sid)
             ->addObjectPermission($b, 'OWNER', $user7Sid)
-            ->addObjectPermission($b, 'VIEW', $user8Sid)
-        ;
+            ->addObjectPermission($b, 'VIEW', $user8Sid);
 
         //Delete permission for all SID
         $this->aclManager->revokeAllObjectPermissions($a);
@@ -277,8 +269,7 @@ class AclManager extends AbstractSecurityTest
             ->addObjectFieldPermission($b, 'securedField', 'VIEW', $user10Sid)
             ->addObjectFieldPermission($b, 'foo', 'VIEW', $user10Sid)
             ->addObjectFieldPermission($b, 'bar', 'VIEW', $user10Sid)
-            ->addObjectFieldPermission($b, 'bar', 'VIEW', $user9Sid)
-        ;
+            ->addObjectFieldPermission($b, 'bar', 'VIEW', $user9Sid);
 
         //Revoke all field permission for all sid
         $this->aclManager->revokeAllObjectFieldPermissions($a, 'securedField');
@@ -334,8 +325,7 @@ class AclManager extends AbstractSecurityTest
         $this->aclManager
             ->addClassPermission($a, 'EDIT', $user13Sid)
             ->addClassPermission($b, 'EDIT', $user13Sid)
-            ->addClassPermission($b, 'EDIT', $user14Sid)
-        ;
+            ->addClassPermission($b, 'EDIT', $user14Sid);
 
         $this->authenticateUser('user13');
         $this->assertTrue($this->aclManager->isGranted('EDIT', $a, 'class'));
@@ -369,8 +359,7 @@ class AclManager extends AbstractSecurityTest
             ->addClassPermission($b, 'EDIT', $user11Sid)
             ->addClassPermission($c, 'VIEW', $user12Sid)
             ->addClassPermission($this->barClass, 'VIEW', $user12Sid)
-            ->addClassPermission($this->fooClass, 'MASTER', 'ROLE_ADMIN')
-        ;
+            ->addClassPermission($this->fooClass, 'MASTER', 'ROLE_ADMIN');
 
         //Revoke all class permission for all sid
         $this->aclManager->revokeAllClassPermissions($a);

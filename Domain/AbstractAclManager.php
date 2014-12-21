@@ -134,7 +134,7 @@ abstract class AbstractAclManager implements AclManagerInterface
      */
     protected function doCreatePermissionContext($type, $fields, $securityIdentity = null, $mask = null, $granting = true)
     {
-        if(!is_array($fields)){
+        if (!is_array($fields)) {
             $fields = (array) $fields;
         }
 
@@ -158,11 +158,11 @@ abstract class AbstractAclManager implements AclManagerInterface
      */
     protected function doCreateSecurityIdentity($identity = null)
     {
-        if(null === $identity){
+        if (null === $identity) {
             $identity = $this->getUser();
         }
 
-        if($identity instanceof SecurityIdentityInterface){
+        if ($identity instanceof SecurityIdentityInterface) {
             return $identity;
         }
 
@@ -200,16 +200,16 @@ abstract class AbstractAclManager implements AclManagerInterface
         $type = $context->getPermissionType();
         $this->connection->beginTransaction();
 
-        try{
+        try {
             $fields = $context->getFields();
-            if(empty($fields)){
+            if (empty($fields)) {
                 $aceCollection = $this->getAceCollection($acl, $type);
                 $size = count($aceCollection) - 1;
                 reset($aceCollection);
 
                 $this->doUpdatePermission($size, $replaceExisting, $aceCollection, $context, $acl, null, $type);
-            }else{
-                foreach($context->getFields() as $field){
+            } else {
+                foreach ($context->getFields() as $field) {
                     $aceCollection = $this->getFieldAceCollection($acl, $type, $field);
 
                     $size = count($aceCollection) - 1;
@@ -220,7 +220,7 @@ abstract class AbstractAclManager implements AclManagerInterface
             }
 
             $this->connection->commit();
-        } catch(\Exception $e){
+        } catch (\Exception $e) {
             $this->connection->rollBack();
 
             throw $e;
@@ -265,7 +265,7 @@ abstract class AbstractAclManager implements AclManagerInterface
             }
         }
 
-        if(null === $securityIdentity = $context->getSecurityIdentity()){
+        if (null === $securityIdentity = $context->getSecurityIdentity()) {
             $securityIdentity = $this->doCreateSecurityIdentity();
         }
 
@@ -301,12 +301,12 @@ abstract class AbstractAclManager implements AclManagerInterface
         $fields = $context->getFields();
         $isTransactionActive = $this->connection->isTransactionActive();
 
-        if(!$isTransactionActive){
+        if (!$isTransactionActive) {
             $this->connection->beginTransaction();
         }
 
-        try{
-            if(null === $fields || empty($fields)){
+        try {
+            if (null === $fields || empty($fields)) {
                 $aceCollection = $this->getAceCollection($acl, $type);
 
                 $found = false;
@@ -317,7 +317,7 @@ abstract class AbstractAclManager implements AclManagerInterface
                     /** @var Entry $ace */
                     $ace = $aceCollection[$i];
 
-                    if(null === $context->getSecurityIdentity() || $ace->getSecurityIdentity() === $context->getSecurityIdentity()){
+                    if (null === $context->getSecurityIdentity() || $ace->getSecurityIdentity() === $context->getSecurityIdentity()) {
                         if ($context->equals($ace)) {
                             $acl->{"delete{$type}Ace"}($i);
                             $found = true;
@@ -328,7 +328,7 @@ abstract class AbstractAclManager implements AclManagerInterface
                 if (false === $found) {
                     // create a non-granting ACE for this permission
 
-                    if(null === $securityIdentity = $context->getSecurityIdentity()){
+                    if (null === $securityIdentity = $context->getSecurityIdentity()) {
                         $securityIdentity = $this->doCreateSecurityIdentity();
                     }
 
@@ -342,7 +342,7 @@ abstract class AbstractAclManager implements AclManagerInterface
 
                     $this->doApplyPermission($acl, $newContext);
                 }
-            }else {
+            } else {
                 $aceCollection = array();
 
                 foreach ($fields as $field) {
@@ -380,11 +380,11 @@ abstract class AbstractAclManager implements AclManagerInterface
                 }
             }
 
-            if(!$isTransactionActive){
+            if (!$isTransactionActive) {
                 $this->connection->commit();
             }
-        } catch(\Exception $e){
-            if(!$isTransactionActive){
+        } catch (\Exception $e) {
+            if (!$isTransactionActive) {
                 $this->connection->rollBack();
             }
 
@@ -404,7 +404,7 @@ abstract class AbstractAclManager implements AclManagerInterface
         $isActiveTransaction = $this->connection->isTransactionActive();
         $fields = $context->getFields();
 
-        if(!$isActiveTransaction){
+        if (!$isActiveTransaction) {
             $this->connection->beginTransaction();
         }
 
@@ -414,29 +414,28 @@ abstract class AbstractAclManager implements AclManagerInterface
             $size = count($aceCollection) - 1;
             reset($aceCollection);
 
-            try{
+            try {
                 for ($i = $size; $i >= 0; $i--) {
-
                     /** @var Entry $ace */
                     $ace = $aceCollection[$i];
 
-                    if(null === $context->getSecurityIdentity() || $ace->getSecurityIdentity() === $context->getSecurityIdentity()){
+                    if (null === $context->getSecurityIdentity() || $ace->getSecurityIdentity() === $context->getSecurityIdentity()) {
                         $acl->{"delete{$context->getPermissionType()}Ace"}($i);
                     }
                 }
 
-                if(!$isActiveTransaction){
+                if (!$isActiveTransaction) {
                     $this->connection->commit();
                 }
-            } catch(\Exception $e){
-                if(!$isActiveTransaction){
+            } catch (\Exception $e) {
+                if (!$isActiveTransaction) {
                     $this->connection->rollBack();
                 }
                 throw $e;
             }
         } else {
-            try{
-                foreach($fields as $field){
+            try {
+                foreach ($fields as $field) {
                     $aceCollection = $this->getFieldAceCollection($acl, $context->getPermissionType(), $field);
 
                     $size = count($aceCollection) - 1;
@@ -446,23 +445,22 @@ abstract class AbstractAclManager implements AclManagerInterface
                         /** @var Entry $ace */
                         $ace = $aceCollection[$i];
 
-                        if(null === $context->getSecurityIdentity() || $ace->getSecurityIdentity() === $context->getSecurityIdentity()){
+                        if (null === $context->getSecurityIdentity() || $ace->getSecurityIdentity() === $context->getSecurityIdentity()) {
                             $acl->{"delete{$context->getPermissionType()}FieldAce"}($i, $field);
                         }
                     }
                 }
 
-                if(!$isActiveTransaction){
+                if (!$isActiveTransaction) {
                     $this->connection->commit();
                 }
-            } catch(\Exception $e){
-                if(!$isActiveTransaction){
+            } catch (\Exception $e) {
+                if (!$isActiveTransaction) {
                     $this->connection->rollBack();
                 }
 
                 throw $e;
             }
-
         }
     }
 
@@ -500,17 +498,17 @@ abstract class AbstractAclManager implements AclManagerInterface
      */
     protected function buildMask($attributes)
     {
-        if(is_int($attributes)){ //it's already a mask
+        if (is_int($attributes)) { //it's already a mask
             return $attributes;
         }
 
-        if(!is_array($attributes)){
+        if (!is_array($attributes)) {
             $attributes = (array) $attributes;
         }
 
         $maskBuilder = new MaskBuilder();
 
-        foreach($attributes as $attribute){
+        foreach ($attributes as $attribute) {
             $maskBuilder->add($attribute);
         }
 

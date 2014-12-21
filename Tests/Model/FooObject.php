@@ -71,5 +71,4 @@ class FooObject
     {
         return $this->id;
     }
-
 }

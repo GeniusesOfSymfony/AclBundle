@@ -9,7 +9,7 @@ class AclWalker extends SqlWalker
     /**
      * @param $fromClause
      *
-     * @return string 
+     * @return string
      */
     public function walkFromClause($fromClause)
     {
@@ -37,7 +37,7 @@ ACL_SQL;
     }
 
     /**
-     * @param array $extraQueries
+     * @param array  $extraQueries
      * @param string $tableAlias
      *
      * @return array
@@ -46,8 +46,8 @@ ACL_SQL;
     {
         $clause = array();
 
-        foreach($extraQueries as $query){
-            $clause[] = $tableAlias.'.id IN(('.$query.'))';
+        foreach ($extraQueries as $query) {
+            $clause[] = $tableAlias . '.id IN((' . $query . '))';
         }
 
         return implode(' OR ', $clause);

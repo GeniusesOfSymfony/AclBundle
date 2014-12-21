@@ -134,8 +134,8 @@ class AclManager extends AbstractAclManager
      */
     public function revokePermission($domainObject, $attributes, $securityIdentity = null, $type = 'object')
     {
-        if(null !== $securityIdentity){
-           $securityIdentity = $this->doCreateSecurityIdentity($securityIdentity);
+        if (null !== $securityIdentity) {
+            $securityIdentity = $this->doCreateSecurityIdentity($securityIdentity);
         }
 
         $context = $this->doCreatePermissionContext(
@@ -285,15 +285,15 @@ class AclManager extends AbstractAclManager
      */
     public function isFieldGranted($attributes, $object, $fields, $type = 'object')
     {
-        if(!is_array($fields)){
+        if (!is_array($fields)) {
             $fields = array($fields);
         }
 
         $oid = $this->doRetrieveObjectIdentity($object, $type);
         $fieldGranted = array();
 
-        foreach($fields as $field){
-            if(true === $this->getSecurityContext()->isGranted($attributes, new FieldVote($oid, $field))){
+        foreach ($fields as $field) {
+            if (true === $this->getSecurityContext()->isGranted($attributes, new FieldVote($oid, $field))) {
                 $fieldGranted[$field] = true;
             }
         }
@@ -303,9 +303,9 @@ class AclManager extends AbstractAclManager
 
     protected function doRetrieveObjectIdentity($object, $type)
     {
-        if($object instanceof ObjectIdentityInterface){
+        if ($object instanceof ObjectIdentityInterface) {
             $oid = $object;
-        }else{
+        } else {
             $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
             $objectIdentityRetriever->setType($type);
             $oid = $objectIdentityRetriever->getObjectIdentity($object);
@@ -325,7 +325,7 @@ class AclManager extends AbstractAclManager
             return;
         }
 
-        if(false === $token->isAuthenticated()){
+        if (false === $token->isAuthenticated()) {
             return AuthenticatedVoter::IS_AUTHENTICATED_ANONYMOUSLY;
         }
 

@@ -78,7 +78,7 @@ class AbstractSecurityTest extends WebTestCase
 
     protected function resetDB()
     {
-        foreach($this->tableNames as $table){
+        foreach ($this->tableNames as $table) {
             $this->connection->exec(sprintf('TRUNCATE TABLE `%s`', $table));
         }
     }

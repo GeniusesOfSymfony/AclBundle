@@ -32,19 +32,19 @@ class AclObjectRetrievalStrategy extends ObjectIdentityRetrievalStrategy impleme
      */
     public function getObjectIdentity($object)
     {
-        if('class' === $this->type){
-            if(is_object($object)){
+        if ('class' === $this->type) {
+            if (is_object($object)) {
                 return new ObjectIdentity(ClassUtils::getRealClass($object), $this->type);
             }
 
-            if(is_string($object)){
+            if (is_string($object)) {
                 return new ObjectIdentity($object, $this->type);
             }
 
             throw new \Exception('Undefined type, can\'t retrieve oid');
         }
 
-        if('object' === $this->type){
+        if ('object' === $this->type) {
             return parent::getObjectIdentity($object);
         }
 
