@@ -47,7 +47,7 @@ interface AclManagerInterface
      *
      * @param  mixed                                      $domainObject
      * @param  string                                     $field
-     * @param  int                                        $mask
+     * @param  int|string|string[]                                        $mask
      * @param  UserInterface|TokenInterface|RoleInterface $securityIdentity if none fiven, the current session user will be used
      * @return self
      */
@@ -95,24 +95,24 @@ interface AclManagerInterface
 
     /**
      * @param mixed  $domainObject
-     * @param int    $mask
+     * @param string|string[]    $mask
      * @param null   $securityIdentity
      * @param string $type
      *
      * @return self
      */
-    public function revokePermission($domainObject, $mask, $securityIdentity = null, $type = 'object');
+    public function revokePermission($domainObject, $attributes, $securityIdentity = null, $type = 'object');
 
     /**
      * @param mixed  $domainObject
-     * @param string $field
-     * @param int    $mask
+     * @param string|string[] $fields
+     * @param string|string[]    $mask
      * @param null   $securityIdentity
      * @param string $type
      *
      * @return self
      */
-    public function revokeFieldPermission($domainObject, $field, $mask, $securityIdentity = null, $type = 'object');
+    public function revokeFieldPermission($domainObject, $fields, $attributes, $securityIdentity = null, $type = 'object');
 
     /**
      * @param mixed                                          $domainObject
@@ -162,19 +162,21 @@ interface AclManagerInterface
     /**
      * @param string|string[] $attributes
      * @param null|object     $object
+     * @param string          $type
      *
      * @return bool
      */
-    public function isGranted($attributes, $object = null);
+    public function isGranted($attributes, $object = null, $type = 'object');
 
     /**
      * @param string|string[] $masks
      * @param object          $object
      * @param string          $field
+     * @param string          $type
      *
      * @return bool
      */
-    public function isFieldGranted($attributes, $object, $field);
+    public function isFieldGranted($attributes, $object, $field, $type = 'object');
 
     /**
      * Retrieves the current session user

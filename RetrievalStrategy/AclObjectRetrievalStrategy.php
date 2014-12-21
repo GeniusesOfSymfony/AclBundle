@@ -26,15 +26,25 @@ class AclObjectRetrievalStrategy extends ObjectIdentityRetrievalStrategy impleme
     /**
      * @param object $domainObject
      *
-     * @return ObjectIdentity|\Symfony\Component\Security\Acl\Model\ObjectIdentityInterface
+     * @return ObjectIdentity|\Symfony\Component\Security\Acl\Model\ObjectIdentityInterface|void
+     * @throws \Exception
      */
     public function getObjectIdentity($domainObject)
     {
-        //We allowed to retrieve objectIdentity from string !
-        if (is_string($domainObject)) {
-            return new ObjectIdentity($this->type, $domainObject);
+        if('class' === $this->type){
+            if(is_object($domainObject)){
+                return new ObjectIdentity($this->type, get_class($domainObject));
+            }
+
+            if(is_string($domainObject)){
+                return new ObjectIdentity($this->type, $domainObject);
+            }
+
+            throw new \Exception('Undefined type, can\'t retrieve oid');
         }
 
-        return parent::getObjectIdentity($domainObject);
+        if('object' === $this->type){
+            return parent::getObjectIdentity($domainObject);
+        }
     }
 }

@@ -24,9 +24,9 @@ class PermissionContext implements PermissionContextInterface
     protected $permissionType;
 
     /**
-     * @var string
+     * @var array
      */
-    protected $field;
+    protected $fields;
 
     /**
      * @var bool
@@ -46,7 +46,7 @@ class PermissionContext implements PermissionContextInterface
         return $this->permissionMask;
     }
 
-    public function setSecurityIdentity(SecurityIdentityInterface $securityIdentity)
+    public function setSecurityIdentity(SecurityIdentityInterface $securityIdentity = null)
     {
         $this->securityIdentity = $securityIdentity;
     }
@@ -76,14 +76,14 @@ class PermissionContext implements PermissionContextInterface
         return $this->granting;
     }
 
-    public function setField($field)
+    public function setFields(array $fields)
     {
-        $this->field = $field;
+        $this->fields = $fields;
     }
 
-    public function getField()
+    public function getFields()
     {
-        return $this->field;
+        return $this->fields;
     }
 
     public function equals(AuditableEntryInterface $ace)

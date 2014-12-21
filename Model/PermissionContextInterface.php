@@ -23,9 +23,9 @@ interface PermissionContextInterface
     public function getPermissionType();
 
     /**
-     * @return string
+     * @return array
      */
-    public function getField();
+    public function getFields();
 
     /**
      * @return bool

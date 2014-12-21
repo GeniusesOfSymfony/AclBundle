@@ -1087,7 +1087,7 @@
       <argument type="collection">
         <argument type="service">
           <service class="Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider" public="false">
-            <argument>5494aa5706cf9</argument>
+            <argument>54962828aa880</argument>
           </service>
         </argument>
       </argument>
@@ -1217,7 +1217,7 @@
         <argument type="service">
           <service class="Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener" public="false">
             <argument type="service" id="security.context"/>
-            <argument>5494aa5706cf9</argument>
+            <argument>54962828aa880</argument>
             <argument>null</argument>
             <argument type="service" id="security.authentication.manager"/>
           </service>
@@ -1280,12 +1280,13 @@
     </service>
     <service id="doctrine.dbal.default_connection" class="Doctrine\DBAL\Connection" factory-method="createConnection" factory-service="doctrine.dbal.connection_factory">
       <argument type="collection">
-        <argument key="driver">pdo_sqlite</argument>
-        <argument key="memory">true</argument>
-        <argument key="host">localhost</argument>
-        <argument key="port">null</argument>
+        <argument key="driver">pdo_mysql</argument>
+        <argument key="host">127.0.0.1</argument>
+        <argument key="port">3306</argument>
+        <argument key="dbname">test_acl</argument>
         <argument key="user">root</argument>
-        <argument key="password">null</argument>
+        <argument key="password">root</argument>
+        <argument key="charset">UTF8</argument>
         <argument key="driverOptions" type="collection"/>
       </argument>
       <argument type="service">

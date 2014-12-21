@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Client;
 use Symfony\Component\Security\Acl\Dbal\Schema;
+use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\User;
@@ -39,6 +40,8 @@ class AbstractSecurityTest extends WebTestCase
      */
     protected $aclManager;
 
+    protected $tableNames;
+
     public function setUp()
     {
         $this->client = static::createClient();
@@ -51,7 +54,7 @@ class AbstractSecurityTest extends WebTestCase
             $this->markTestSkipped('This test requires SQLite support in your environment.');
         }
 
-        $options = array(
+        $this->tableNames = array(
             'oid_table_name' => 'acl_object_identities',
             'oid_ancestors_table_name' => 'acl_object_identity_ancestors',
             'class_table_name' => 'acl_classes',
@@ -59,13 +62,25 @@ class AbstractSecurityTest extends WebTestCase
             'entry_table_name' => 'acl_entries',
         );
 
-        $schema = new Schema($options);
-
-        foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
-            $this->connection->exec($sql);
-        }
+//        $schema = new Schema($this->tableNames);
+//
+//        foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
+//            $this->connection->exec($sql);
+//        }
 
         $this->aclManager = $this->container->get('problematic.acl_manager');
+    }
+
+    protected function generateSidForUser($username)
+    {
+        return new UserSecurityIdentity($username, 'Symfony\Component\Security\Core\User\User');
+    }
+
+    protected function resetDB()
+    {
+        foreach($this->tableNames as $table){
+            $this->connection->exec(sprintf('TRUNCATE TABLE `%s`', $table));
+        }
     }
 
     protected function authenticateUser($username, array $roles = array())

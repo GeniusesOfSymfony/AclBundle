@@ -27,9 +27,24 @@ security:
     encoders:
         Symfony\Component\Security\Core\User\User: plaintext
 
+#Use for CI
+#doctrine:
+#    dbal:
+#        connections:
+#            default:
+#                driver: pdo_sqlite
+#                memory: true
+
+#Use real db to debug
 doctrine:
     dbal:
+        default_connection: default
         connections:
             default:
-                driver: pdo_sqlite
-                memory: true
+                driver: pdo_mysql
+                host: 127.0.0.1
+                port: 3306
+                dbname: test_acl
+                user: root
+                password: root
+                charset: "UTF8"
