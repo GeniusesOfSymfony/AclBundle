@@ -69,7 +69,7 @@ abstract class AbstractAclManager implements AclManagerInterface
     /**
      * @return MutableAclProviderInterface
      */
-    protected function getAclProvider()
+    public function getAclProvider()
     {
         return $this->aclProvider;
     }
@@ -335,7 +335,7 @@ abstract class AbstractAclManager implements AclManagerInterface
                     $newContext = $this->doCreatePermissionContext(
                         $context->getPermissionType(),
                         null,
-                        $context->getSecurityIdentity(),
+                        $securityIdentity,
                         $context->getMask(),
                         false
                     );
@@ -419,6 +419,7 @@ abstract class AbstractAclManager implements AclManagerInterface
 
                     /** @var Entry $ace */
                     $ace = $aceCollection[$i];
+
                     if(null === $context->getSecurityIdentity() || $ace->getSecurityIdentity() === $context->getSecurityIdentity()){
                         $acl->{"delete{$context->getPermissionType()}Ace"}($i);
                     }
@@ -437,6 +438,7 @@ abstract class AbstractAclManager implements AclManagerInterface
             try{
                 foreach($fields as $field){
                     $aceCollection = $this->getFieldAceCollection($acl, $context->getPermissionType(), $field);
+
                     $size = count($aceCollection) - 1;
                     reset($aceCollection);
 

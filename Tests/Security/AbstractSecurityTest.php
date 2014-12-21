@@ -62,11 +62,11 @@ class AbstractSecurityTest extends WebTestCase
             'entry_table_name' => 'acl_entries',
         );
 
-//        $schema = new Schema($this->tableNames);
-//
-//        foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
-//            $this->connection->exec($sql);
-//        }
+        $schema = new Schema($this->tableNames);
+
+        foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
+            $this->connection->exec($sql);
+        }
 
         $this->aclManager = $this->container->get('problematic.acl_manager');
     }

@@ -2,6 +2,8 @@
 
 namespace Problematic\AclManagerBundle\Domain;
 
+use Symfony\Component\Security\Acl\Model\ObjectIdentityInterface;
+use Symfony\Component\Security\Acl\Model\SecurityIdentityInterface;
 use Symfony\Component\Security\Acl\Voter\FieldVote;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
@@ -53,7 +55,6 @@ class AclManager extends AbstractAclManager
     /**
      * @param  mixed                                      $domainObject
      * @param  string                                     $fields
-     * @param  int|string|string[]                        $mask
      * @param  UserInterface|TokenInterface|RoleInterface $securityIdentity
      * @param  string                                     $type
      * @param  string                                     $fields
@@ -72,11 +73,7 @@ class AclManager extends AbstractAclManager
             $mask
         );
 
-        $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
-        $objectIdentityRetriever->setType($type);
-        $oid = $objectIdentityRetriever->getObjectIdentity($domainObject);
-
-        $acl = $this->doLoadAcl($oid);
+        $acl = $this->doLoadAcl($this->doRetrieveObjectIdentity($domainObject, $type));
 
         $this->doApplyPermission($acl, $context, $replaceExisting);
 
@@ -148,11 +145,7 @@ class AclManager extends AbstractAclManager
             $this->buildMask($attributes)
         );
 
-        $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
-        $objectIdentityRetriever->setType($type);
-        $oid = $objectIdentityRetriever->getObjectIdentity($domainObject);
-
-        $acl = $this->doLoadAcl($oid);
+        $acl = $this->doLoadAcl($this->doRetrieveObjectIdentity($domainObject, $type));
         $this->doRevokePermission($acl, $context);
         $this->getAclProvider()->updateAcl($acl);
 
@@ -175,11 +168,7 @@ class AclManager extends AbstractAclManager
             $this->buildMask($attributes)
         );
 
-        $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
-        $objectIdentityRetriever->setType($type);
-        $oid = $objectIdentityRetriever->getObjectIdentity($domainObject);
-
-        $acl = $this->doLoadAcl($oid);
+        $acl = $this->doLoadAcl($this->doRetrieveObjectIdentity($domainObject, $type));
 
         $this->doRevokePermission($acl, $context);
         $this->getAclProvider()->updateAcl($acl);
@@ -221,8 +210,8 @@ class AclManager extends AbstractAclManager
 
     /**
      * @param mixed  $domainObject
-     * @param string $fields
-     * @param null   $securityIdentity
+     * @param string|string[] $fields
+     * @param null|string|SecurityIdentityInterface|UserInterface   $securityIdentity
      * @param string $type
      *
      * @return $this
@@ -239,10 +228,7 @@ class AclManager extends AbstractAclManager
             $securityIdentity
         );
 
-        $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
-        $objectIdentityRetriever->setType($type);
-        $oid = $objectIdentityRetriever->getObjectIdentity($domainObject);
-
+        $oid = $this->doRetrieveObjectIdentity($domainObject, $type);
         $acl = $this->doLoadAcl($oid);
         $this->doRevokeAllPermissions($acl, $context);
         $this->getAclProvider()->updateAcl($acl);
@@ -269,7 +255,7 @@ class AclManager extends AbstractAclManager
             $sids[] = $sid;
         }
 
-        $acls = $this->getAclProvider()->findAcls($oids, $sids); // todo: do we need to do anything with these?
+        $acls = $this->getAclProvider()->findAcls($oids, $sids);
 
         return $acls;
     }
@@ -279,12 +265,7 @@ class AclManager extends AbstractAclManager
      */
     public function deleteAclFor($object, $type = 'class')
     {
-        $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
-        $objectIdentityRetriever->setType($type);
-
-        $oid = $objectIdentityRetriever->getObjectIdentity($object);
-        $this->getAclProvider()->deleteAcl($oid);
-
+        $this->getAclProvider()->deleteAcl($this->doRetrieveObjectIdentity($object, $type));
         return $this;
     }
 
@@ -293,11 +274,10 @@ class AclManager extends AbstractAclManager
      */
     public function isGranted($attributes, $object = null, $type = 'object')
     {
-        $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
-        $objectIdentityRetriever->setType($type);
-        $oid = $objectIdentityRetriever->getObjectIdentity($object);
-
-        return $this->getSecurityContext()->isGranted($attributes, $oid);
+        return $this->getSecurityContext()->isGranted(
+            $attributes,
+            $this->doRetrieveObjectIdentity($object, $type)
+        );
     }
 
     /**
@@ -309,18 +289,29 @@ class AclManager extends AbstractAclManager
             $fields = array($fields);
         }
 
-        $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
-        $objectIdentityRetriever->setType($type);
-        $oid = $objectIdentityRetriever->getObjectIdentity($object);
-
-        $buffer = array();
+        $oid = $this->doRetrieveObjectIdentity($object, $type);
+        $fieldGranted = array();
 
         foreach($fields as $field){
             if(true === $this->getSecurityContext()->isGranted($attributes, new FieldVote($oid, $field))){
-                $buffer[] = true;
+                $fieldGranted[$field] = true;
             }
         }
-        return count($fields) === count($buffer);
+
+        return count($fields) === count($fieldGranted);
+    }
+
+    protected function doRetrieveObjectIdentity($object, $type)
+    {
+        if($object instanceof ObjectIdentityInterface){
+            $oid = $object;
+        }else{
+            $objectIdentityRetriever = $this->getObjectIdentityRetrievalStrategy();
+            $objectIdentityRetriever->setType($type);
+            $oid = $objectIdentityRetriever->getObjectIdentity($object);
+        }
+
+        return $oid;
     }
 
     /**
