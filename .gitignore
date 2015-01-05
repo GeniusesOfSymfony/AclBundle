@@ -1,2 +1,5 @@
 vendor/*
 composer.lock
+
+Tests/App/cache
+Tests/App/logs

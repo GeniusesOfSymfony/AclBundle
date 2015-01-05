@@ -54,21 +54,20 @@ class AclFilter
             $identity = $token->getUser();
         }
 
-        if(!is_array($extraCriteria)){
+        if (!is_array($extraCriteria)) {
             $extraCriteria = array($extraCriteria);
         }
 
         $sqlQueries = [];
-        foreach($extraCriteria as $criteria){
-            if($criteria instanceof QueryBuilder) {
+        foreach ($extraCriteria as $criteria) {
+            if ($criteria instanceof QueryBuilder) {
                 $sqlQueries[] = $criteria->getQuery()->getSQL();
-            } elseif($criteria instanceof Query){
+            } elseif ($criteria instanceof Query) {
                 $sqlQueries[] = $criteria->getSQL();
-            } else{
+            } else {
                 $sqlQueries[] = $criteria;
             }
         }
-
 
         $query->setHint(static::HINT_ACL_EXTRA_CRITERIA, $sqlQueries);
 
@@ -99,8 +98,7 @@ class AclFilter
 
         $hintAclMetadata = (false !== $query->getHint('acl.metadata'))
             ? $query->getHint('acl.metadata')
-            : array()
-        ;
+            : array();
 
         $hintAclMetadata[] = array('query' => $aclQuery, 'table' => $table, 'alias' => $alias);
 
@@ -116,7 +114,7 @@ class AclFilter
      * @param  array   $classes
      * @param  array   $identifiers
      * @param  integer $mask
-     * @param array $extraCriteria
+     * @param  array   $extraCriteria
      * @return string
      */
     private function getExtraQuery(Array $classes, Array $identifiers, $mask)

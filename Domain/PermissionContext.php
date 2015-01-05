@@ -8,15 +8,30 @@ use Symfony\Component\Security\Acl\Model\SecurityIdentityInterface;
 
 class PermissionContext implements PermissionContextInterface
 {
+    /**
+     * @var int
+     */
     protected $permissionMask;
-    protected $securityIdentity;
-    protected $permissionType;
-    protected $field;
-    protected $granting;
 
-    public function __construct()
-    {
-    }
+    /**
+     * @var SecurityIdentityInterface
+     */
+    protected $securityIdentity;
+
+    /**
+     * @var string
+     */
+    protected $permissionType;
+
+    /**
+     * @var array
+     */
+    protected $fields;
+
+    /**
+     * @var bool
+     */
+    protected $granting;
 
     /**
      * @param integer $mask permission mask, or null for all
@@ -31,7 +46,7 @@ class PermissionContext implements PermissionContextInterface
         return $this->permissionMask;
     }
 
-    public function setSecurityIdentity(SecurityIdentityInterface $securityIdentity)
+    public function setSecurityIdentity(SecurityIdentityInterface $securityIdentity = null)
     {
         $this->securityIdentity = $securityIdentity;
     }
@@ -61,15 +76,16 @@ class PermissionContext implements PermissionContextInterface
         return $this->granting;
     }
 
-    public function setField($field)
+    public function setFields(array $fields)
     {
-        $this->field = $field;
+        $this->fields = $fields;
     }
 
-    public function getField()
+    public function getFields()
     {
-        return $this->field;
+        return $this->fields;
     }
+
     public function equals(AuditableEntryInterface $ace)
     {
         return $ace->getSecurityIdentity() == $this->getSecurityIdentity() &&
