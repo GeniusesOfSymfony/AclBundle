@@ -157,7 +157,7 @@ interface AclManagerInterface
      *
      * @return self
      */
-    public function deleteAclFor($managedItem, $type = 'class');
+    public function deleteAclFor($managedItem, $type = 'object');
 
     /**
      * @param string|string[] $attributes

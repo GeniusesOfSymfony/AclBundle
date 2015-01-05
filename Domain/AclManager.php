@@ -263,9 +263,10 @@ class AclManager extends AbstractAclManager
     /**
      * {@inheritDoc}
      */
-    public function deleteAclFor($object, $type = 'class')
+    public function deleteAclFor($object, $type = 'object')
     {
         $this->getAclProvider()->deleteAcl($this->doRetrieveObjectIdentity($object, $type));
+
         return $this;
     }
 

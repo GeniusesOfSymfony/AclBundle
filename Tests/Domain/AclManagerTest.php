@@ -2,6 +2,7 @@
 
 namespace Problematic\AclManagerBundle\Tests\Domain;
 
+use Problematic\AclManagerBundle\Domain\AclManager;
 use Problematic\AclManagerBundle\Tests\Model\BarObject;
 use Problematic\AclManagerBundle\Tests\Model\FooObject;
 use Problematic\AclManagerBundle\Tests\Security\AbstractSecurityTest;
@@ -311,40 +312,6 @@ class AclManagerTest extends AbstractSecurityTest
         $this->assertFalse($this->aclManager->isFieldGranted('VIEW', $b, array('bar', 'foo')));
     }
 
-    /**
-     * @see https://github.com/GeniusesOfSymfony/AclBundle/issues/6
-     */
-    public function testFixIssue1()
-    {
-        $a = new FooObject(uniqid('a'));
-        $b = new BarObject(uniqid('b'));
-
-        $user13Sid = $this->generateSidForUser('user13');
-        $user14Sid = $this->generateSidForUser('user14');
-
-        $this->aclManager
-            ->addClassPermission($a, 'EDIT', $user13Sid)
-            ->addClassPermission($b, 'EDIT', $user13Sid)
-            ->addClassPermission($b, 'EDIT', $user14Sid);
-
-        $this->authenticateUser('user13');
-        $this->assertTrue($this->aclManager->isGranted('EDIT', $a, 'class'));
-        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class'));
-
-        $this->authenticateUser('user14');
-        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class'));
-
-        $this->aclManager->revokeAllClassPermissions($a);
-
-        //From now class FooObject loose all class based acl for all sid
-        //So user13 can't view, edit FooObject, but still do it on BarObject
-        $this->assertFalse($this->aclManager->isGranted('EDIT', $a, 'class'));
-        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class')); //Currently that bug
-
-        $this->authenticateUser('user14');
-        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class')); //Currently that bug
-    }
-
     public function testRevokeClassPermissions()
     {
         $a = new FooObject(uniqid('a'));
@@ -392,39 +359,90 @@ class AclManagerTest extends AbstractSecurityTest
         $this->assertFalse($this->aclManager->isGranted('VIEW', $b, 'class'));
     }
 
-//    public function testRevokeAllClassFieldPermissions()
-//    {
-//        $class = 'Problematic\AclManagerBundle\Tests\Model\BarObject';
-//
-//        $this->aclManager->setClassFieldPermission(
-//            $class,
-//            ['securedField', 'bar'],
-//            array('EDIT'),
-//            'ROLE_ADMIN'
-//        );
-//
-//        $this->authenticateUser('admin', array('ROLE_ADMIN'));
-//        $this->aclManager->revokeAllClassFieldPermissions($class, 'securedField');
-//
-//        $this->assertFalse($this->aclManager->isFieldGranted('OWNER', $class, 'securedField', 'class'));
-//        $this->assertFalse($this->aclManager->isFieldGranted('OWNER', $class, 'bar', 'class'));
+    public function testRevokeAllClassFieldPermissions()
+    {
+        $a = new FooObject(uniqid('a'));
+        $b = new BarObject(uniqid('b'));
 
-//        //also might work with oid directly
-//        $oid = new ObjectIdentity($class, 'class');
-//        $this->assertFalse($this->aclManager->isFieldGranted('VIEW', $oid, 'securedField'));
-//        $this->assertFalse($this->aclManager->isFieldGranted('EDIT', $oid, 'securedField'));
-//        $this->assertFalse($this->aclManager->isFieldGranted(array('EDIT', 'VIEW'), $oid, 'securedField'));
-//    }
-//
-//    public function testDeleteAclFor()
-//    {
-//        $this->authenticateUser('user3');
-//        $foobar = new FooObject(uniqid());
-//        $this->aclManager->addObjectPermission($foobar, 'OWNER');
-//        $this->aclManager->addObjectFieldPermission($foobar, 'bar', 'OWNER');
-//        $this->assertTrue($this->aclManager->isGranted('OWNER', $foobar));
-//        $this->aclManager->deleteAclFor($foobar);
-//        $this->assertFalse($this->aclManager->isGranted('OWNER', $foobar));
-//        $this->assertFalse($this->aclManager->isFieldGranted('OWNER', 'bar', $foobar));
-//    }
+        $user13Sid = $this->generateSidForUser('user13');
+        $user14Sid = $this->generateSidForUser('user14');
+
+        $this->aclManager
+            ->addClassPermission($a, 'EDIT', $user13Sid)
+            ->addClassPermission($b, 'EDIT', $user13Sid)
+            ->addClassPermission($b, 'EDIT', $user14Sid);
+
+        $this->authenticateUser('user13');
+        $this->assertTrue($this->aclManager->isGranted('EDIT', $a, 'class'));
+        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class'));
+
+        $this->authenticateUser('user14');
+        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class'));
+
+        $this->aclManager->revokeAllClassPermissions($a);
+
+        //From now class FooObject loose all class based acl for all sid
+        //So user13 can't view, edit FooObject, but still do it on BarObject
+        $this->assertFalse($this->aclManager->isGranted('EDIT', $a, 'class'));
+        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class')); //Currently that bug
+
+        $this->authenticateUser('user14');
+        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class')); //Currently that bug
+    }
+
+    public function testDeleteAclFor()
+    {
+        $a = new FooObject(uniqid('a'));
+        $b = new BarObject(uniqid('b'));
+
+        $user15Sid = $this->generateSidForUser('user15');
+        $user16Sid = $this->generateSidForUser('user16');
+
+        $this->aclManager
+            ->addObjectPermission($a, 'EDIT', $user15Sid)
+            ->addObjectFieldPermission($b, 'securedField', 'EDIT', $user15Sid)
+            ->addObjectPermission($b, 'EDIT', $user16Sid)
+            ->addObjectPermission($a, 'MASTER', $user16Sid);
+
+        $this->authenticateUser('user15');
+        $this->assertTrue($this->aclManager->isGranted('EDIT', $a));
+        $this->assertTrue($this->aclManager->isFieldGranted('EDIT', $b, 'securedField'));
+        $this->assertFalse($this->aclManager->isGranted('EDIT', $b));
+        $this->assertFalse($this->aclManager->isGranted('VIEW', $b));
+
+        $this->authenticateUser('user16');
+        $this->assertTrue($this->aclManager->isGranted('EDIT', $b));
+        $this->assertTrue($this->aclManager->isGranted('MASTER', $a));
+
+        $this->aclManager->deleteAclFor($a, 'object'); //Delete only acl typed as object
+
+        $this->authenticateUser('user15');
+        $this->assertFalse($this->aclManager->isGranted('EDIT', $a)); //Deleted acl
+        $this->assertTrue($this->aclManager->isFieldGranted('EDIT', $b, 'securedField')); //kept
+
+        $this->authenticateUser('user16');
+        $this->assertFalse($this->aclManager->isGranted('MASTER', $a)); //Deleted acl
+
+        $this->aclManager->deleteAclFor($b);
+
+        $this->authenticateUser('user15');
+        $this->assertFalse($this->aclManager->isFieldGranted('EDIT', $b, 'securedField'));
+
+        $this->authenticateUser('user16');
+        $this->assertFalse($this->aclManager->isGranted('EDIT', $b));
+
+        $this->aclManager
+            ->addClassFieldPermission($a, 'securedField', 'EDIT', $user15Sid)
+            ->addClassPermission($b, 'EDIT', $user16Sid)
+            ->addClassPermission($a, 'VIEW', $user16Sid);
+
+        $this->aclManager->deleteAclFor($a, 'class');
+
+        $this->authenticateUser('user15');
+        $this->assertFalse($this->aclManager->isFieldGranted('EDIT', $a, 'securedField', 'class'));
+
+        $this->authenticateUser('user16');
+        $this->assertFalse($this->aclManager->isGranted('VIEW', $a, 'class'));
+        $this->assertTrue($this->aclManager->isGranted('EDIT', $b, 'class'));
+    }
 }
