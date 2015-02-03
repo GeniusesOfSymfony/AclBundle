@@ -33,6 +33,55 @@ class AclFilter
         list($this->aclWalker, $this->roleHierarchy) = $options;
     }
 
+
+    /**
+     * @param Query|QueryBuilder $criteria
+     *
+     * @return string (sql)
+     */
+    protected function getSqlCriteria($criteria)
+    {
+        if($criteria instanceof QueryBuilder) {
+            return $criteria->getQuery()->getSQL();
+        } elseif($criteria instanceof Query){
+            return $criteria->getSQL();
+        } else{
+            throw new \Exception(sprintf(
+                'Criteria must be instance of Query or QueryBuilder, instance of %s given',
+                get_class($criteria)
+            ));
+        }
+    }
+
+    /**
+     * @param Query|QueryBuilder|array $extraCriteria
+     *
+     * @return array
+     * @throws \Exception
+     */
+    protected function getExtraCriteria($extraCriteria)
+    {
+        $sqlQueries = [];
+
+        if (!$extraCriteria) {
+            return $sqlQueries;
+        }
+
+        if (!is_array($extraCriteria)) {
+            $sqlQueries[] = $this->getSqlCriteria($extraCriteria);
+        }
+
+        if ($extraCriteria && !is_array($extraCriteria)) {
+            $extraCriteria = array($extraCriteria);
+        }
+
+        if (is_array($extraCriteria)) {
+            foreach ($extraCriteria as $criteria) {
+                $sqlQueries[] = $this->getSqlCriteria($criteria);
+            }
+        }
+    }
+
     /**
      * Apply ACL filter
      *
@@ -40,6 +89,8 @@ class AclFilter
      * @param  array                  $permissions
      * @param  string | UserInterface $identity
      * @param  string                 $alias
+     * @param  array|Query|QueryBuilder $extraCriteria
+     *
      * @return Query
      */
     public function apply(
@@ -47,30 +98,14 @@ class AclFilter
         array $permissions = array('VIEW'),
         $identity = null,
         $alias = null,
-        $extraCriteria = false
+        $extraCriteria = false //Allow one or many
     ) {
         if (null === $identity) {
             $token = $this->securityContext->getToken();
             $identity = $token->getUser();
         }
 
-        if(!is_array($extraCriteria)){
-            $extraCriteria = array($extraCriteria);
-        }
-
-        $sqlQueries = [];
-        foreach($extraCriteria as $criteria){
-            if($criteria instanceof QueryBuilder) {
-                $sqlQueries[] = $criteria->getQuery()->getSQL();
-            } elseif($criteria instanceof Query){
-                $sqlQueries[] = $criteria->getSQL();
-            } else{
-                $sqlQueries[] = $criteria;
-            }
-        }
-
-
-        $query->setHint(static::HINT_ACL_EXTRA_CRITERIA, $sqlQueries);
+        $query->setHint(static::HINT_ACL_EXTRA_CRITERIA, $this->getExtraCriteria($extraCriteria));
 
         if ($query instanceof QueryBuilder) {
             $query = $this->cloneQuery($query->getQuery());

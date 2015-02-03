@@ -23,12 +23,19 @@ class AclWalker extends SqlWalker
                 $query = $metadata['query'];
                 $table = $metadata['table'];
                 $tableAlias = $this->getSQLTableAlias($table, $alias);
-                $this->parseExtraQueries($extraQueries, $tableAlias);
                 $aclAlias = 'ta' . $key . '_';
 
-                $aclSql = <<<ACL_SQL
-INNER JOIN ({$query}) {$aclAlias} ON ({$tableAlias}.id = {$aclAlias}.id OR ({$this->parseExtraQueries($extraQueries, $tableAlias)}))
+                if ($extraQueries) {
+                    $extraCriteriaSql = $this->parseExtraQueries($extraQueries, $tableAlias);
+                    $aclSql = <<<ACL_SQL
+INNER JOIN ({$query}) {$aclAlias} ON ({$tableAlias}.id = {$aclAlias}.id OR ({{$extraCriteriaSql}))
 ACL_SQL;
+                } else {
+                    $aclSql = <<<ACL_SQL
+INNER JOIN ({$query}) {$aclAlias} ON ({$tableAlias}.id = {$aclAlias}.id)
+ACL_SQL;
+                }
+
                 $sql .= ' ' . $aclSql;
             }
         }
@@ -45,6 +52,10 @@ ACL_SQL;
     protected function parseExtraQueries(Array $extraQueries, $tableAlias)
     {
         $clause = array();
+
+        if(null === $extraQueries[0]){
+            return false;
+        }
 
         foreach($extraQueries as $query){
             $clause[] = $tableAlias.'.id IN(('.$query.'))';
