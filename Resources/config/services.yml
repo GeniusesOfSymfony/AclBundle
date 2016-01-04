@@ -6,10 +6,10 @@ services:
     problematic.acl_manager:
         class: %problematic.acl_manager.class%
         arguments:
-            aclProvider: @security.acl.provider
-            securityContext: @security.context
-            objectIdentityRetrievalStrategy: @problematic.acl.object_identity_retrieval_strategy
-            connection: @security.acl.dbal.connection
+            aclProvider: "@security.acl.provider"
+            securityContext: "@security.context"
+            objectIdentityRetrievalStrategy: "@problematic.acl.object_identity_retrieval_strategy"
+            connection: "@security.acl.dbal.connection"
 
     problematic.acl.object_identity_retrieval_strategy:
         class: %problematic.acl_object_identity_retrieval_strategy%
