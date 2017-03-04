@@ -7,7 +7,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\Security\Acl\Permission\MaskBuilder;
+use Symfony\Component\Security\Acl\Permission\PermissionMapInterface;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -16,19 +16,42 @@ class AclFilter
     const HINT_ACL_EXTRA_CRITERIA = 'acl_extra_criteria';
 
     /**
+     * @var \Doctrine\Common\Persistence\ObjectManager|object
+     */
+    protected $em;
+
+    /**
+     * @var SecurityContextInterface
+     */
+    protected $securityContext;
+
+    /**
+     * @var PermissionMapInterface
+     */
+    protected $permissionMap;
+
+    /**
+     * @var object
+     */
+    protected $aclConnection;
+
+    /**
      * Construct AclFilter
      *
      * @param AbstractManagerRegistry  $doctrine
      * @param SecurityContextInterface $securityContext
+     * @param PermissionMapInterface   $permissionMap
      * @param array                    $options
      */
     public function __construct(
         AbstractManagerRegistry $doctrine,
         SecurityContextInterface $securityContext,
+        PermissionMapInterface $permissionMap,
         Array $options = array()
     ) {
         $this->em = $doctrine->getManager();
         $this->securityContext = $securityContext;
+        $this->permissionMap = $permissionMap;
         $this->aclConnection = $doctrine->getConnection('default');
         list($this->aclWalker, $this->roleHierarchy) = $options;
     }
@@ -113,10 +136,13 @@ class AclFilter
             throw new \Exception();
         }
 
-        $maskBuilder = new MaskBuilder();
+        $masks = [];
         foreach ($permissions as $permission) {
-            $mask = constant(get_class($maskBuilder) . '::MASK_' . strtoupper($permission));
-            $maskBuilder->add($mask);
+            if ($this->permissionMap->contains($permission)) {
+                foreach ($this->permissionMap->getMasks($permission, null) as $mask) {
+                    $masks[] = $mask;
+                }
+            }
         }
 
         $entity = ($this->getEntityFromAlias($query, $alias));
@@ -127,7 +153,7 @@ class AclFilter
         $aclQuery = $this->getExtraQuery(
             $this->getClasses($metadata),
             $this->getIdentifiers($identity),
-            $maskBuilder->get()
+            array_unique($masks)
         );
 
         $hintAclMetadata = (false !== $query->getHint('acl.metadata'))
@@ -146,17 +172,18 @@ class AclFilter
     /**
      * Get ACL filter SQL
      *
-     * @param  array   $classes
-     * @param  array   $identifiers
-     * @param  integer $mask
-     * @param array $extraCriteria
+     * @param  array  $classes
+     * @param  array  $identifiers
+     * @param  array  $masks
+     *
      * @return string
      */
-    private function getExtraQuery(Array $classes, Array $identifiers, $mask)
+    private function getExtraQuery(array $classes, array $identifiers, $masks)
     {
         $database = $this->aclConnection->getDatabase();
         $inClasses = implode(",", $classes);
         $inIdentifiers = implode(",", $identifiers);
+        $inMasks = implode(",", $masks);
 
         $query = <<<SELECTQUERY
 SELECT DISTINCT o.object_identifier as id FROM {$database}.acl_object_identities as o
@@ -169,7 +196,7 @@ SELECT DISTINCT o.object_identifier as id FROM {$database}.acl_object_identities
     )
     WHERE c.class_type IN ({$inClasses})
         AND s.identifier IN ({$inIdentifiers})
-        AND e.mask >= {$mask}
+        AND e.mask IN ({$inMasks})
 SELECTQUERY;
 
         return $query;

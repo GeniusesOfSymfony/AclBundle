@@ -22,6 +22,7 @@ class OrmFilterCompilerPass implements CompilerPassInterface
         $aclFilterDef = new Definition('Problematic\AclManagerBundle\ORM\AclFilter', [
             new Reference('doctrine'),
             new Reference('security.context'),
+            new Reference('security.acl.permission.map'),
             [ 'Problematic\AclManagerBundle\ORM\AclWalker', $container->getParameter('security.role_hierarchy.roles') ]
         ]);
 
